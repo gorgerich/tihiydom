@@ -1,12 +1,38 @@
 // src/lib/utils.ts
 
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+// Тип для классов (как в shadcn)
+type ClassValue =
+  | string
+  | number
+  | null
+  | boolean
+  | undefined
+  | ClassValue[]
+  | { [key: string]: boolean | undefined };
 
-/**
- * Объединяет tailwind-классы без конфликтов.
- * Используется всеми компонентами из папки ui (tabs, button, input и т.д.)
- */
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+// Простейший аналог функции cn из shadcn
+export function cn(...inputs: ClassValue[]): string {
+  const classes: string[] = [];
+
+  for (const input of inputs) {
+    if (!input) continue;
+
+    if (typeof input === "string" || typeof input === "number") {
+      classes.push(String(input));
+      continue;
+    }
+
+    if (Array.isArray(input)) {
+      classes.push(cn(...input));
+      continue;
+    }
+
+    if (typeof input === "object") {
+      for (const [key, value] of Object.entries(input)) {
+        if (value) classes.push(key);
+      }
+    }
+  }
+
+  return classes.join(" ");
 }
