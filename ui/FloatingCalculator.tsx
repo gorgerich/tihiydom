@@ -4,7 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
 import { Button } from "./button";
 import { Input } from "./input";
 import { ChevronDown, ChevronUp, Download, Share2 } from './Icons';
-import { cn } from './ui/utils';
+import { cn } from '../utils';
 
 interface BreakdownItem {
   name: string;
