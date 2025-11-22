@@ -1,29 +1,31 @@
+import { useEffect, useState } from "react";
+
 import HeroSection from "./HeroSection";
 import StepperWorkflow from "./StepperWorkflow";
 import PackagesSection from "./PackagesSection";
 import PriceComparison from "./PriceComparison";
 import RealisticCoffinViewer from "./RealisticCoffinViewer";
 import TopButtons from "./TopButtons";
-  calculateTotal,
-  calculateBreakdown,
-} from "./components/calculationUtils";
+import FloatingCalculator from "./FloatingCalculator";
+import { calculateTotal, calculateBreakdown } from "./calculationUtils";
 
 export default function App() {
   // Глобальный обработчик ошибок для предотвращения краша из-за hls.js и других внешних библиотек
   useEffect(() => {
     // Перехватываем ошибки из веб-воркеров на самом раннем этапе
     const originalPostMessage = Worker.prototype.postMessage;
-    Worker.prototype.postMessage = function(...args) {
+    Worker.prototype.postMessage = function (...args) {
       try {
         return originalPostMessage.apply(this, args);
       } catch (error) {
         // Подавляем ошибки клонирования данных в воркерах
-        if (error instanceof Error && (
-          error.name === 'DataCloneError' || 
-          error.message.includes('out of memory') ||
-          error.message.includes('cannot be cloned')
-        )) {
-          console.warn('Suppressed Worker DataCloneError:', error.message);
+        if (
+          error instanceof Error &&
+          (error.name === "DataCloneError" ||
+            error.message.includes("out of memory") ||
+            error.message.includes("cannot be cloned"))
+        ) {
+          console.warn("Suppressed Worker DataCloneError:", error.message);
           return;
         }
         throw error;
@@ -32,29 +34,37 @@ export default function App() {
 
     const handleError = (event: ErrorEvent) => {
       // Перехватываем ошибки из hls.js и других веб-воркеров
-      if (event.message && (
-        event.message.includes('DataCloneError') ||
-        event.message.includes('postMessage') ||
-        event.message.includes('hls.js') ||
-        event.message.includes('out of memory') ||
-        event.message.includes('esm.sh/hls') ||
-        event.message.includes('cannot be cloned') ||
-        event.message.includes('DedicatedWorkerGlobalScope')
-      )) {
-        console.warn('Intercepted and suppressed worker error:', event.message);
+      if (
+        event.message &&
+        (event.message.includes("DataCloneError") ||
+          event.message.includes("postMessage") ||
+          event.message.includes("hls.js") ||
+          event.message.includes("out of memory") ||
+          event.message.includes("esm.sh/hls") ||
+          event.message.includes("cannot be cloned") ||
+          event.message.includes("DedicatedWorkerGlobalScope"))
+      ) {
+        console.warn(
+          "Intercepted and suppressed worker error:",
+          event.message,
+        );
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
         return false;
       }
-      
+
       // Также перехватываем ошибки из самих воркеров
-      if (event.error instanceof Error && (
-        event.error.name === 'DataCloneError' ||
-        event.error.message.includes('out of memory') ||
-        event.error.message.includes('cannot be cloned')
-      )) {
-        console.warn('Intercepted worker error object:', event.error.message);
+      if (
+        event.error instanceof Error &&
+        (event.error.name === "DataCloneError" ||
+          event.error.message.includes("out of memory") ||
+          event.error.message.includes("cannot be cloned"))
+      ) {
+        console.warn(
+          "Intercepted worker error object:",
+          event.error.message,
+        );
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
@@ -65,16 +75,20 @@ export default function App() {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       // Перехватываем необработанные отклонения промисов из веб-воркеров
       const message = event.reason?.message || String(event.reason);
-      if (message && (
-        message.includes('DataCloneError') ||
-        message.includes('postMessage') ||
-        message.includes('hls.js') ||
-        message.includes('out of memory') ||
-        message.includes('esm.sh/hls') ||
-        message.includes('cannot be cloned') ||
-        message.includes('DedicatedWorkerGlobalScope')
-      )) {
-        console.warn('Intercepted and suppressed worker promise rejection:', message);
+      if (
+        message &&
+        (message.includes("DataCloneError") ||
+          message.includes("postMessage") ||
+          message.includes("hls.js") ||
+          message.includes("out of memory") ||
+          message.includes("esm.sh/hls") ||
+          message.includes("cannot be cloned") ||
+          message.includes("DedicatedWorkerGlobalScope"))
+      ) {
+        console.warn(
+          "Intercepted and suppressed worker promise rejection:",
+          message,
+        );
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
@@ -83,12 +97,16 @@ export default function App() {
     };
 
     // Добавляем обработчики с capture фазой для перехвата раньше
-    window.addEventListener('error', handleError, true);
-    window.addEventListener('unhandledrejection', handleUnhandledRejection, true);
+    window.addEventListener("error", handleError, true);
+    window.addEventListener("unhandledrejection", handleUnhandledRejection, true);
 
     return () => {
-      window.removeEventListener('error', handleError, true);
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection, true);
+      window.removeEventListener("error", handleError, true);
+      window.removeEventListener(
+        "unhandledrejection",
+        handleUnhandledRejection,
+        true,
+      );
       // Восстанавливаем оригинальный postMessage
       Worker.prototype.postMessage = originalPostMessage;
     };
@@ -125,12 +143,7 @@ export default function App() {
     needsPallbearers: true,
 
     // Атрибутика
-    packageType: "" as
-      | "basic"
-      | "standard"
-      | "premium"
-      | "custom"
-      | "",
+    packageType: "" as "basic" | "standard" | "premium" | "custom" | "",
     selectedAdditionalServices: [] as string[],
     specialRequests: "",
 
@@ -145,10 +158,8 @@ export default function App() {
 
   const [formData, setFormData] = useState(initialFormData);
   const [currentStep, setCurrentStep] = useState(0);
-  const [
-    selectedCemeteryCategory,
-    setSelectedCemeteryCategory,
-  ] = useState<"standard" | "comfort" | "premium">("standard");
+  const [selectedCemeteryCategory, setSelectedCemeteryCategory] =
+    useState<"standard" | "comfort" | "premium">("standard");
 
   // Загрузка из localStorage при монтировании
   useEffect(() => {
@@ -156,8 +167,8 @@ export default function App() {
       const saved = localStorage.getItem("funeral-workflow-draft");
       if (saved) {
         // Проверяем размер перед парсингом
-        if (saved.length > 1000000) {
-          console.warn('Saved draft too large, removing...');
+        if (saved.length > 1_000_000) {
+          console.warn("Saved draft too large, removing...");
           localStorage.removeItem("funeral-workflow-draft");
           return;
         }
@@ -174,8 +185,10 @@ export default function App() {
             selectedAdditionalServices:
               parsed.formData.selectedAdditionalServices || [],
             // Очищаем прочерки из дат при загрузке - они должны появляться только при нажатии "Не знаю"
-            birthDate: parsed.formData.birthDate === '—' ? '' : parsed.formData.birthDate,
-            deathDate: parsed.formData.deathDate === '—' ? '' : parsed.formData.deathDate,
+            birthDate:
+              parsed.formData.birthDate === "—" ? "" : parsed.formData.birthDate,
+            deathDate:
+              parsed.formData.deathDate === "—" ? "" : parsed.formData.deathDate,
           };
           setFormData(loadedFormData);
           // Не загружаем currentStep - всегда начинаем с первого шага (0)
@@ -202,17 +215,14 @@ export default function App() {
         savedAt: new Date().toISOString(),
       };
       const draftString = JSON.stringify(draft);
-      
+
       // Строгое ограничение размера (500KB вместо 1MB)
-      if (draftString.length > 500000) {
-        console.warn('Draft too large, skipping save');
+      if (draftString.length > 500_000) {
+        console.warn("Draft too large, skipping save");
         return;
       }
-      
-      localStorage.setItem(
-        "funeral-workflow-draft",
-        draftString,
-      );
+
+      localStorage.setItem("funeral-workflow-draft", draftString);
     } catch (e) {
       console.error("Failed to save draft:", e);
       // Если ошибка переполнения, очищаем старые данные
@@ -220,13 +230,14 @@ export default function App() {
         localStorage.removeItem("funeral-workflow-draft");
         // Также очищаем другие большие элементы
         const keys = Object.keys(localStorage);
-        keys.forEach(key => {
+        keys.forEach((key) => {
           try {
             const item = localStorage.getItem(key);
-            if (item && item.length > 100000) { // > 100KB
+            if (item && item.length > 100_000) {
+              // > 100KB
               localStorage.removeItem(key);
             }
-          } catch (clearError) {
+          } catch {
             // Игнорируем ошибки очистки
           }
         });
@@ -264,16 +275,12 @@ export default function App() {
       <HeroSection />
 
       {/* Stepper Workflow - поверх Hero на 15% с liquid glass эффектом */}
-      <div
-        className="relative z-20 stepper-overlay-position"
-      >
+      <div className="relative z-20 stepper-overlay-position">
         <StepperWorkflow
           formData={formData}
           onUpdateFormData={handleUpdateFormData}
           onStepChange={handleStepChange}
-          onCemeteryCategoryChange={
-            handleCemeteryCategoryChange
-          }
+          onCemeteryCategoryChange={handleCemeteryCategoryChange}
         />
       </div>
 
@@ -288,18 +295,12 @@ export default function App() {
       {/* Плавающий калькулятор - показывается начиная с шага 1 */}
       {currentStep >= 1 && (
         <FloatingCalculator
-          total={calculateTotal(
-            formData,
-            selectedCemeteryCategory,
-          )}
-          breakdown={calculateBreakdown(
-            formData,
-            selectedCemeteryCategory,
-          )}
+          total={calculateTotal(formData, selectedCemeteryCategory)}
+          breakdown={calculateBreakdown(formData, selectedCemeteryCategory)}
         />
       )}
 
-      {/* Footer */}
+      {/* Здесь можно потом вернуть PriceComparison / RealisticCoffinViewer, если нужно */}
     </div>
   );
 }
