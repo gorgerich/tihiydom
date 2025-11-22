@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import HeroSection from "../HeroSection";
+import StepperWorkflow from "../StepperWorkflow";
+import PackagesSection from "../PackagesSection";
+import PriceComparison from "../PriceComparison";
+import RealisticCoffinViewer from "../RealisticCoffinViewer";
 
-import HeroSection from "./HeroSection";
-import StepperWorkflow from "./StepperWorkflow";
-import PackagesSection from "./PackagesSection";
-import FloatingCalculator from "./FloatingCalculator";
-import TopButtons from "./TopButtons";
+import TopButtons from "../TopButtons";
+import FloatingCalculator from "../FloatingCalculator";
 
+// утилиты из shadcn
 import { calculateTotal, calculateBreakdown } from "../src/lib/utils";
 
 type CemeteryCategory = "standard" | "comfort" | "premium";
