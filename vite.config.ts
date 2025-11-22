@@ -1,37 +1,18 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-// https://vite.dev/config/
+// Vite-конфиг для структуры, где:
+// - вход: src/main.tsx
+// - основной React-код: ui/App.tsx и остальные компоненты в ui/
+// - стили и утилиты — в src/ (src/lib и т.п.)
 export default defineConfig({
-  base: './',
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-  server: {
-    port: 3000,
-    open: true,
+      "@": "/src"
+    }
   },
   build: {
-    outDir: 'dist',
-    sourcemap: false,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'ui-vendor': ['framer-motion', 'lucide-react'],
-          'radix-vendor': [
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-          ],
-        },
-      },
-    },
-  },
-})
+    outDir: "dist"
+  }
+});
