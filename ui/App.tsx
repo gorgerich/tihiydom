@@ -1,15 +1,12 @@
-// ui/App.tsx
+import HeroSection from "../HeroSection";
+import StepperWorkflow from "../StepperWorkflow";
+import PackagesSection from "../PackagesSection";
+import PriceComparison from "../PriceComparison";
+import RealisticCoffinViewer from "../RealisticCoffinViewer";
+import TopButtons from "../TopButtons";
+import FloatingCalculator from "../FloatingCalculator";
+import { calculateTotal, calculateBreakdown } from "../src/lib/utils";
 
-import React, { useEffect, useState } from "react";
-
-import HeroSection from "./HeroSection";
-import StepperWorkflow from "./StepperWorkflow";
-import PackagesSection from "./PackagesSection";
-import PriceComparison from "./PriceComparison";
-import RealisticCoffinViewer from "./RealisticCoffinViewer";
-import TopButtons from "./TopButtons";
-import FloatingCalculator from "./FloatingCalculator";
-import { calculateTotal, calculateBreakdown } from "./calculationUtils";
 
 
 type CemeteryCategory = "standard" | "comfort" | "premium";
