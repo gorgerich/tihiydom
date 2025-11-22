@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "./styles/globals.css";
+import './globals.css';
 import "./components/suppress-r3f-warnings";
 import { HeroSection } from "./components/HeroSection";
 import { StepperWorkflow } from "./components/StepperWorkflow";
