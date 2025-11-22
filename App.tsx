@@ -3,22 +3,105 @@ import { useEffect, useState } from "react";
 import HeroSection from "./HeroSection";
 import StepperWorkflow from "./StepperWorkflow";
 import PackagesSection from "./PackagesSection";
-import PriceComparison from "./PriceComparison";
-import RealisticCoffinViewer from "./RealisticCoffinViewer";
 import TopButtons from "./TopButtons";
 import FloatingCalculator from "./FloatingCalculator";
 import { calculateTotal, calculateBreakdown } from "./calculationUtils";
 
+type CemeteryCategory = "standard" | "comfort" | "premium";
+
+type FuneralFormData = {
+  // Формат
+  serviceType: "burial" | "cremation";
+  hasHall: boolean;
+  hallDuration: number;
+  ceremonyType: "civil" | "religious" | "combined";
+  confession: string;
+  ceremonyOrder: "civil-first";
+
+  // Логистика
+  cemetery: string;
+  selectedSlot: string;
+  needsHearse: boolean;
+  hearseRoute: {
+    morgue: boolean;
+    hall: boolean;
+    church: boolean;
+    cemetery: boolean;
+  };
+  needsFamilyTransport: boolean;
+  familyTransportSeats: number;
+  distance: string;
+  needsPallbearers: boolean;
+
+  // Атрибутика
+  packageType: "" | "basic" | "standard" | "premium" | "custom";
+  selectedAdditionalServices: string[];
+  specialRequests: string;
+
+  // Документы
+  fullName: string;
+  birthDate: string;
+  deathDate: string;
+  deathCertificate: string;
+  relationship: string;
+  dataConsent: boolean;
+};
+
+const INITIAL_FORM_DATA: FuneralFormData = {
+  // Формат
+  serviceType: "burial",
+  hasHall: true,
+  hallDuration: 60,
+  ceremonyType: "civil",
+  confession: "",
+  ceremonyOrder: "civil-first",
+
+  // Логистика
+  cemetery: "",
+  selectedSlot: "",
+  needsHearse: true,
+  hearseRoute: {
+    morgue: true,
+    hall: true,
+    church: true,
+    cemetery: true,
+  },
+  needsFamilyTransport: false,
+  familyTransportSeats: 5,
+  distance: "",
+  needsPallbearers: true,
+
+  // Атрибутика
+  packageType: "",
+  selectedAdditionalServices: [],
+  specialRequests: "",
+
+  // Документы
+  fullName: "",
+  birthDate: "",
+  deathDate: "",
+  deathCertificate: "",
+  relationship: "",
+  dataConsent: false,
+};
+
 export default function App() {
-  // Глобальный обработчик ошибок для предотвращения краша из-за hls.js и других внешних библиотек
+  const [formData, setFormData] = useState<FuneralFormData>(INITIAL_FORM_DATA);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [selectedCemeteryCategory, setSelectedCemeteryCategory] =
+    useState<CemeteryCategory>("standard");
+
+  // Глобальный перехват ошибок из воркеров / hls.js
   useEffect(() => {
-    // Перехватываем ошибки из веб-воркеров на самом раннем этапе
+    if (typeof Worker === "undefined") return;
+
     const originalPostMessage = Worker.prototype.postMessage;
-    Worker.prototype.postMessage = function (...args) {
+
+    Worker.prototype.postMessage = function (...args: unknown[]) {
       try {
+        // @ts-expect-error — вызов оригинального метода
         return originalPostMessage.apply(this, args);
       } catch (error) {
-        // Подавляем ошибки клонирования данных в воркерах
         if (
           error instanceof Error &&
           (error.name === "DataCloneError" ||
@@ -33,38 +116,19 @@ export default function App() {
     };
 
     const handleError = (event: ErrorEvent) => {
-      // Перехватываем ошибки из hls.js и других веб-воркеров
-      if (
-        event.message &&
-        (event.message.includes("DataCloneError") ||
-          event.message.includes("postMessage") ||
-          event.message.includes("hls.js") ||
-          event.message.includes("out of memory") ||
-          event.message.includes("esm.sh/hls") ||
-          event.message.includes("cannot be cloned") ||
-          event.message.includes("DedicatedWorkerGlobalScope"))
-      ) {
-        console.warn(
-          "Intercepted and suppressed worker error:",
-          event.message,
-        );
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-        return false;
-      }
+      const msg = event.message || event.error?.message || "";
 
-      // Также перехватываем ошибки из самих воркеров
       if (
-        event.error instanceof Error &&
-        (event.error.name === "DataCloneError" ||
-          event.error.message.includes("out of memory") ||
-          event.error.message.includes("cannot be cloned"))
+        msg &&
+        (msg.includes("DataCloneError") ||
+          msg.includes("postMessage") ||
+          msg.includes("hls.js") ||
+          msg.includes("esm.sh/hls") ||
+          msg.includes("out of memory") ||
+          msg.includes("cannot be cloned") ||
+          msg.includes("DedicatedWorkerGlobalScope"))
       ) {
-        console.warn(
-          "Intercepted worker error object:",
-          event.error.message,
-        );
+        console.warn("Intercepted and suppressed worker error:", msg);
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
@@ -73,21 +137,22 @@ export default function App() {
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      // Перехватываем необработанные отклонения промисов из веб-воркеров
-      const message = event.reason?.message || String(event.reason);
+      const msg =
+        (event.reason && (event.reason.message || String(event.reason))) || "";
+
       if (
-        message &&
-        (message.includes("DataCloneError") ||
-          message.includes("postMessage") ||
-          message.includes("hls.js") ||
-          message.includes("out of memory") ||
-          message.includes("esm.sh/hls") ||
-          message.includes("cannot be cloned") ||
-          message.includes("DedicatedWorkerGlobalScope"))
+        msg &&
+        (msg.includes("DataCloneError") ||
+          msg.includes("postMessage") ||
+          msg.includes("hls.js") ||
+          msg.includes("esm.sh/hls") ||
+          msg.includes("out of memory") ||
+          msg.includes("cannot be cloned") ||
+          msg.includes("DedicatedWorkerGlobalScope"))
       ) {
         console.warn(
           "Intercepted and suppressed worker promise rejection:",
-          message,
+          msg,
         );
         event.preventDefault();
         event.stopPropagation();
@@ -96,7 +161,6 @@ export default function App() {
       }
     };
 
-    // Добавляем обработчики с capture фазой для перехвата раньше
     window.addEventListener("error", handleError, true);
     window.addEventListener("unhandledrejection", handleUnhandledRejection, true);
 
@@ -107,116 +171,65 @@ export default function App() {
         handleUnhandledRejection,
         true,
       );
-      // Восстанавливаем оригинальный postMessage
       Worker.prototype.postMessage = originalPostMessage;
     };
   }, []);
 
-  // Принудительный скролл к началу при первой загрузке
+  // Скролл к началу при первой загрузке
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Глобальное состояние формы для синхронизации между компонентами
-  const initialFormData = {
-    // Формат
-    serviceType: "burial", // burial или cremation
-    hasHall: true,
-    hallDuration: 60,
-    ceremonyType: "civil", // civil, religious, combined
-    confession: "",
-    ceremonyOrder: "civil-first", // для комбинированной
-
-    // Логистика
-    cemetery: "",
-    selectedSlot: "",
-    needsHearse: true,
-    hearseRoute: {
-      morgue: true,
-      hall: true,
-      church: true,
-      cemetery: true,
-    },
-    needsFamilyTransport: false,
-    familyTransportSeats: 5,
-    distance: "",
-    needsPallbearers: true,
-
-    // Атрибутика
-    packageType: "" as "basic" | "standard" | "premium" | "custom" | "",
-    selectedAdditionalServices: [] as string[],
-    specialRequests: "",
-
-    // Документы
-    fullName: "",
-    birthDate: "",
-    deathDate: "",
-    deathCertificate: "",
-    relationship: "",
-    dataConsent: false,
-  };
-
-  const [formData, setFormData] = useState(initialFormData);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [selectedCemeteryCategory, setSelectedCemeteryCategory] =
-    useState<"standard" | "comfort" | "premium">("standard");
-
-  // Загрузка из localStorage при монтировании
+  // Загрузка черновика из localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem("funeral-workflow-draft");
-      if (saved) {
-        // Проверяем размер перед парсингом
-        if (saved.length > 1_000_000) {
-          console.warn("Saved draft too large, removing...");
-          localStorage.removeItem("funeral-workflow-draft");
-          return;
-        }
+      if (!saved) return;
 
-        try {
-          const parsed = JSON.parse(saved);
-          const loadedFormData = {
-            ...initialFormData,
-            ...parsed.formData,
-            hearseRoute: {
-              ...initialFormData.hearseRoute,
-              ...(parsed.formData.hearseRoute || {}),
-            },
-            selectedAdditionalServices:
-              parsed.formData.selectedAdditionalServices || [],
-            // Очищаем прочерки из дат при загрузке - они должны появляться только при нажатии "Не знаю"
-            birthDate:
-              parsed.formData.birthDate === "—" ? "" : parsed.formData.birthDate,
-            deathDate:
-              parsed.formData.deathDate === "—" ? "" : parsed.formData.deathDate,
-          };
-          setFormData(loadedFormData);
-          // Не загружаем currentStep - всегда начинаем с первого шага (0)
-        } catch (e) {
-          console.error("Failed to parse draft:", e);
-          localStorage.removeItem("funeral-workflow-draft");
-        }
+      if (saved.length > 1_000_000) {
+        console.warn("Saved draft too large, removing…");
+        localStorage.removeItem("funeral-workflow-draft");
+        return;
       }
+
+      const parsed = JSON.parse(saved);
+
+      const loadedFormData: FuneralFormData = {
+        ...INITIAL_FORM_DATA,
+        ...(parsed.formData || {}),
+        hearseRoute: {
+          ...INITIAL_FORM_DATA.hearseRoute,
+          ...(parsed.formData?.hearseRoute || {}),
+        },
+        selectedAdditionalServices:
+          parsed.formData?.selectedAdditionalServices || [],
+        birthDate:
+          parsed.formData?.birthDate === "—" ? "" : parsed.formData?.birthDate,
+        deathDate:
+          parsed.formData?.deathDate === "—" ? "" : parsed.formData?.deathDate,
+      };
+
+      setFormData(loadedFormData);
     } catch (e) {
       console.error("Failed to load draft:", e);
       try {
         localStorage.removeItem("funeral-workflow-draft");
-      } catch (clearError) {
-        console.error("Failed to clear storage:", clearError);
+      } catch {
+        // игнорируем
       }
     }
   }, []);
 
-  // Сохранение в localStorage при изменении
+  // Сохранение в localStorage при изменении формы
   useEffect(() => {
     try {
       const draft = {
         formData,
         savedAt: new Date().toISOString(),
       };
+
       const draftString = JSON.stringify(draft);
 
-      // Строгое ограничение размера (500KB вместо 1MB)
       if (draftString.length > 500_000) {
         console.warn("Draft too large, skipping save");
         return;
@@ -225,42 +238,33 @@ export default function App() {
       localStorage.setItem("funeral-workflow-draft", draftString);
     } catch (e) {
       console.error("Failed to save draft:", e);
-      // Если ошибка переполнения, очищаем старые данные
       try {
         localStorage.removeItem("funeral-workflow-draft");
-        // Также очищаем другие большие элементы
         const keys = Object.keys(localStorage);
-        keys.forEach((key) => {
-          try {
-            const item = localStorage.getItem(key);
-            if (item && item.length > 100_000) {
-              // > 100KB
-              localStorage.removeItem(key);
-            }
-          } catch {
-            // Игнорируем ошибки очистки
+        for (const key of keys) {
+          const item = localStorage.getItem(key);
+          if (item && item.length > 100_000) {
+            localStorage.removeItem(key);
           }
-        });
-      } catch (clearError) {
-        console.error("Failed to clear storage:", clearError);
+        }
+      } catch {
+        // игнорируем
       }
     }
   }, [formData]);
 
-  // Функция обновления формы
-  const handleUpdateFormData = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleUpdateFormData = (field: keyof FuneralFormData, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
-  // Обработчик изменения шага
   const handleStepChange = (step: number) => {
     setCurrentStep(step);
   };
 
-  // Обработчик изменения категории кладбища
-  const handleCemeteryCategoryChange = (
-    category: "standard" | "comfort" | "premium",
-  ) => {
+  const handleCemeteryCategoryChange = (category: CemeteryCategory) => {
     setSelectedCemeteryCategory(category);
   };
 
@@ -274,7 +278,7 @@ export default function App() {
       {/* Hero Section */}
       <HeroSection />
 
-      {/* Stepper Workflow - поверх Hero на 15% с liquid glass эффектом */}
+      {/* Stepper Workflow */}
       <div className="relative z-20 stepper-overlay-position">
         <StepperWorkflow
           formData={formData}
@@ -284,7 +288,7 @@ export default function App() {
         />
       </div>
 
-      {/* Packages Section - тарифы и конструктор - показывается только на шаге 2 (Атрибутика) */}
+      {/* Packages Section — только на шаге 2 (Атрибутика) */}
       {currentStep === 2 && (
         <PackagesSection
           formData={formData}
@@ -292,15 +296,13 @@ export default function App() {
         />
       )}
 
-      {/* Плавающий калькулятор - показывается начиная с шага 1 */}
+      {/* Плавающий калькулятор — с шага 1 */}
       {currentStep >= 1 && (
         <FloatingCalculator
           total={calculateTotal(formData, selectedCemeteryCategory)}
           breakdown={calculateBreakdown(formData, selectedCemeteryCategory)}
         />
       )}
-
-      {/* Здесь можно потом вернуть PriceComparison / RealisticCoffinViewer, если нужно */}
     </div>
   );
 }
