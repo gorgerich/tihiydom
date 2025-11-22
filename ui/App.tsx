@@ -1,4 +1,4 @@
-import HeroSection from "../HeroSection";
+import HeroSection from "./HeroSection";
 import StepperWorkflow from "../StepperWorkflow";
 import PackagesSection from "../PackagesSection";
 import PriceComparison from "../PriceComparison";
