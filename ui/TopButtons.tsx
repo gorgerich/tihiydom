@@ -2,9 +2,10 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Info, Play, Sparkles } from 'lucide-react';
-import OnboardingStories from "../OnboardingStories";
-import { AIChatModal } from './AIChatModal';
-import { AboutServiceModal } from './AboutServiceModal';
+import OnboardingStories from "ui/OnboardingStories";
+import PackagesSection from "ui/PackagesSection";
+import AIChatModal from "ui/AIChatModal";
+import { AboutServiceModal } from 'ui./AboutServiceModal';
 
 export function TopButtons() {
   const [isStoriesOpen, setIsStoriesOpen] = useState(false);
