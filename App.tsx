@@ -1,66 +1,26 @@
 import React, { useEffect, useState } from "react";
 
-import HeroSection from "./HeroSection";
-import StepperWorkflow from "./StepperWorkflow";
-import PackagesSection from "./PackagesSection";
-import TopButtons from "./TopButtons";
-import FloatingCalculator from "./FloatingCalculator";
-import { calculateTotal, calculateBreakdown } from "./calculationUtils";
+import HeroSection from "../HeroSection";
+import StepperWorkflow from "../StepperWorkflow";
+import PackagesSection from "../PackagesSection";
+import PriceComparison from "../PriceComparison";
+import RealisticCoffinViewer from "../RealisticCoffinViewer";
+import TopButtons from "../TopButtons";
+import FloatingCalculator from "../FloatingCalculator";
 
-type CemeteryCategory = "standard" | "comfort" | "premium";
-
-const initialFormData: any = {
-  // Формат
-  serviceType: "burial", // burial или cremation
-  hasHall: true,
-  hallDuration: 60,
-  ceremonyType: "civil", // civil, religious, combined
-  confession: "",
-  ceremonyOrder: "civil-first",
-
-  // Логистика
-  cemetery: "",
-  selectedSlot: "",
-  needsHearse: true,
-  hearseRoute: {
-    morgue: true,
-    hall: true,
-    church: true,
-    cemetery: true,
-  },
-  needsFamilyTransport: false,
-  familyTransportSeats: 5,
-  distance: "",
-  needsPallbearers: true,
-
-  // Атрибутика
-  packageType: "" as "basic" | "standard" | "premium" | "custom" | "",
-  selectedAdditionalServices: [] as string[],
-  specialRequests: "",
-
-  // Документы
-  fullName: "",
-  birthDate: "",
-  deathDate: "",
-  deathCertificate: "",
-  relationship: "",
-  dataConsent: false,
-};
+import {
+  calculateTotal,
+  calculateBreakdown,
+} from "../components/calculationUtils";
 
 export default function App() {
-  const [formData, setFormData] = useState<any>(initialFormData);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [selectedCemeteryCategory, setSelectedCemeteryCategory] =
-    useState<CemeteryCategory>("standard");
-
-  // Глобальный обработчик ошибок для воркеров / hls и т.п.
+  // Глобальный обработчик ошибок для предотвращения краша из-за hls.js и других внешних библиотек
   useEffect(() => {
     const originalPostMessage = Worker.prototype.postMessage;
-
-    Worker.prototype.postMessage = function (...args: any[]) {
+    Worker.prototype.postMessage = function (...args) {
       try {
-        return originalPostMessage.apply(this, args as any);
-      } catch (error: any) {
+        return originalPostMessage.apply(this, args);
+      } catch (error) {
         if (
           error instanceof Error &&
           (error.name === "DataCloneError" ||
@@ -107,7 +67,7 @@ export default function App() {
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      const message = (event.reason && event.reason.message) || String(event.reason || "");
+      const message = event.reason?.message || String(event.reason);
       if (
         message &&
         (message.includes("DataCloneError") ||
@@ -120,7 +80,7 @@ export default function App() {
       ) {
         console.warn(
           "Intercepted and suppressed worker promise rejection:",
-          message
+          message,
         );
         event.preventDefault();
         event.stopPropagation();
@@ -134,46 +94,96 @@ export default function App() {
 
     return () => {
       window.removeEventListener("error", handleError, true);
-      window.removeEventListener("unhandledrejection", handleUnhandledRejection, true);
+      window.removeEventListener(
+        "unhandledrejection",
+        handleUnhandledRejection,
+        true,
+      );
       Worker.prototype.postMessage = originalPostMessage;
     };
   }, []);
 
-  // Скролл к началу при первой загрузке
+  // Принудительный скролл к началу при первой загрузке
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Загрузка из localStorage
+  const initialFormData = {
+    // Формат
+    serviceType: "burial",
+    hasHall: true,
+    hallDuration: 60,
+    ceremonyType: "civil",
+    confession: "",
+    ceremonyOrder: "civil-first",
+
+    // Логистика
+    cemetery: "",
+    selectedSlot: "",
+    needsHearse: true,
+    hearseRoute: {
+      morgue: true,
+      hall: true,
+      church: true,
+      cemetery: true,
+    },
+    needsFamilyTransport: false,
+    familyTransportSeats: 5,
+    distance: "",
+    needsPallbearers: true,
+
+    // Атрибутика
+    packageType: "" as "basic" | "standard" | "premium" | "custom" | "",
+    selectedAdditionalServices: [] as string[],
+    specialRequests: "",
+
+    // Документы
+    fullName: "",
+    birthDate: "",
+    deathDate: "",
+    deathCertificate: "",
+    relationship: "",
+    dataConsent: false,
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [selectedCemeteryCategory, setSelectedCemeteryCategory] = useState<
+    "standard" | "comfort" | "premium"
+  >("standard");
+
+  // Загрузка из localStorage при монтировании
   useEffect(() => {
     try {
       const saved = localStorage.getItem("funeral-workflow-draft");
-      if (!saved) return;
+      if (saved) {
+        if (saved.length > 1000000) {
+          console.warn("Saved draft too large, removing...");
+          localStorage.removeItem("funeral-workflow-draft");
+          return;
+        }
 
-      if (saved.length > 1000000) {
-        console.warn("Saved draft too large, removing...");
-        localStorage.removeItem("funeral-workflow-draft");
-        return;
-      }
-
-      try {
-        const parsed = JSON.parse(saved);
-        const loadedFormData = {
-          ...initialFormData,
-          ...parsed.formData,
-          hearseRoute: {
-            ...initialFormData.hearseRoute,
-            ...(parsed.formData?.hearseRoute || {}),
-          },
-          selectedAdditionalServices:
-            parsed.formData?.selectedAdditionalServices || [],
-          birthDate: parsed.formData?.birthDate === "—" ? "" : parsed.formData?.birthDate,
-          deathDate: parsed.formData?.deathDate === "—" ? "" : parsed.formData?.deathDate,
-        };
-        setFormData(loadedFormData);
-      } catch (e) {
-        console.error("Failed to parse draft:", e);
-        localStorage.removeItem("funeral-workflow-draft");
+        try {
+          const parsed = JSON.parse(saved);
+          const loadedFormData = {
+            ...initialFormData,
+            ...parsed.formData,
+            hearseRoute: {
+              ...initialFormData.hearseRoute,
+              ...(parsed.formData.hearseRoute || {}),
+            },
+            selectedAdditionalServices:
+              parsed.formData.selectedAdditionalServices || [],
+            birthDate:
+              parsed.formData.birthDate === "—" ? "" : parsed.formData.birthDate,
+            deathDate:
+              parsed.formData.deathDate === "—" ? "" : parsed.formData.deathDate,
+          };
+          setFormData(loadedFormData);
+        } catch (e) {
+          console.error("Failed to parse draft:", e);
+          localStorage.removeItem("funeral-workflow-draft");
+        }
       }
     } catch (e) {
       console.error("Failed to load draft:", e);
@@ -185,7 +195,7 @@ export default function App() {
     }
   }, []);
 
-  // Сохранение в localStorage
+  // Сохранение в localStorage при изменении
   useEffect(() => {
     try {
       const draft = {
@@ -212,7 +222,7 @@ export default function App() {
               localStorage.removeItem(key);
             }
           } catch {
-            // ignore
+            /* ignore */
           }
         });
       } catch (clearError) {
@@ -222,28 +232,30 @@ export default function App() {
   }, [formData]);
 
   const handleUpdateFormData = (field: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleStepChange = (step: number) => {
     setCurrentStep(step);
   };
 
-  const handleCemeteryCategoryChange = (category: CemeteryCategory) => {
+  const handleCemeteryCategoryChange = (
+    category: "standard" | "comfort" | "premium",
+  ) => {
     setSelectedCemeteryCategory(category);
   };
 
   return (
     <div className="min-h-screen bg-white pt-20 -translate-y-[2.5%]">
-      {/* Верхние кнопки */}
+      {/* Top Buttons */}
       <div className="absolute top-0 left-0 right-0 z-30">
         <TopButtons />
       </div>
 
-      {/* Hero */}
+      {/* Hero Section */}
       <HeroSection />
 
-      {/* Степпер */}
+      {/* Stepper Workflow */}
       <div className="relative z-20 stepper-overlay-position">
         <StepperWorkflow
           formData={formData}
@@ -253,7 +265,7 @@ export default function App() {
         />
       </div>
 
-      {/* Тарифы — только на шаге 2 */}
+      {/* Packages Section - только на шаге 2 */}
       {currentStep === 2 && (
         <PackagesSection
           formData={formData}
@@ -261,7 +273,7 @@ export default function App() {
         />
       )}
 
-      {/* Плавающий калькулятор — начиная с шага 1 */}
+      {/* Плавающий калькулятор - с шага 1 */}
       {currentStep >= 1 && (
         <FloatingCalculator
           total={calculateTotal(formData, selectedCemeteryCategory)}
