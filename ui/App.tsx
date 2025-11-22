@@ -7,6 +7,7 @@ import PriceComparison from "./PriceComparison";
 import RealisticCoffinViewer from "./RealisticCoffinViewer";
 import TopButtons from "./TopButtons";
 import FloatingCalculator from "./FloatingCalculator";
+
 import { calculateTotal, calculateBreakdown } from "./calculationUtils";
 
 type CemeteryCategory = "standard" | "comfort" | "premium";
