@@ -1,22 +1,69 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 import Stepper from "./Stepper";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { Textarea } from './ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Switch } from './ui/switch';
-import { Checkbox } from './ui/checkbox';
-import { Badge } from './ui/badge';
-import { Separator } from './ui/separator';
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, Camera, Edit2, Download, Share2, Clock, RubleSign, Music, Church, Car, Flower2, Snowflake, Sparkles, Shirt, Building, UserCheck, Users, Route, Bus, Package, Palette, Video, Cross, FileText, Utensils, Landmark, Check, Search, MapPin } from './Icons';
-import { cn } from './ui/utils';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { ImageWithFallback } from './figma/ImageWithFallback';
-import { UnifiedCoffinConfigurator } from './UnifiedCoffinConfigurator';
-import { Calendar } from './ui/calendar';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./card";
+import { Button } from "./button";
+import { Input } from "./input";
+import { Label } from "./label";
+import { RadioGroup, RadioGroupItem } from "./radio-group";
+import { Textarea } from "./textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./select";
+import { Switch } from "./switch";
+import { Checkbox } from "./checkbox";
+import { Badge } from "./badge";
+import { Separator } from "./separator";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle2,
+  Camera,
+  Edit2,
+  Download,
+  Share2,
+  Clock,
+  RubleSign,
+  Music,
+  Church,
+  Car,
+  Flower2,
+  Snowflake,
+  Sparkles,
+  Shirt,
+  Building,
+  UserCheck,
+  Users,
+  Route,
+  Bus,
+  Package,
+  Palette,
+  Video,
+  Cross,
+  FileText,
+  Utensils,
+  Landmark,
+  Check,
+  Search,
+  MapPin,
+} from "./Icons";
+import { cn } from "./utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
+import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { UnifiedCoffinConfigurator } from "./UnifiedCoffinConfigurator";
+import { Calendar } from "./calendar";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +71,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from './ui/dialog';
+} from "./dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +81,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from './ui/alert-dialog';
+} from "./alert-dialog";
+
 
 const steps = [
   { id: 'format', label: 'Формат', description: 'Выбор церемонии' },
