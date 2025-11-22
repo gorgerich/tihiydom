@@ -4,9 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Сайт ритуального бюро 'Тихая Память' - цифровой помощник по самостоятельной организации похорон",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+ "scripts": {
+  "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
