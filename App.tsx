@@ -1,11 +1,9 @@
-import { useState, useEffect } from "react";
-import './globals.css';
-import { HeroSection } from "./components/HeroSection";
-import { StepperWorkflow } from "./components/StepperWorkflow";
-import { PackagesSection } from "./components/PackagesSection";
-import { FloatingCalculator } from "./components/FloatingCalculator";
-import { TopButtons } from "./components/TopButtons";
-import {
+import HeroSection from "./HeroSection";
+import StepperWorkflow from "./StepperWorkflow";
+import PackagesSection from "./PackagesSection";
+import PriceComparison from "./PriceComparison";
+import RealisticCoffinViewer from "./RealisticCoffinViewer";
+import TopButtons from "./TopButtons";
   calculateTotal,
   calculateBreakdown,
 } from "./components/calculationUtils";
