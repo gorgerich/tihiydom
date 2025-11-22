@@ -1,6 +1,3 @@
-import { ImageWithFallback } from './figma/ImageWithFallback';
-import heroImage from 'figma:asset/13412c9ae8b313012ddb57cee49b5544e6d54e6f.png';
-
 export function HeroSection() {
   return (
     <section className="relative w-full px-4 pt-8 pb-16 md:pb-20 lg:pb-24">
