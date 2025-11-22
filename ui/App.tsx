@@ -1,35 +1,36 @@
+import React, { useEffect, useState } from "react";
+
 import HeroSection from "./HeroSection";
-import StepperWorkflow from "../StepperWorkflow";
-import PackagesSection from "../PackagesSection";
-import PriceComparison from "../PriceComparison";
-import RealisticCoffinViewer from "../RealisticCoffinViewer";
-import TopButtons from "../TopButtons";
-import FloatingCalculator from "../FloatingCalculator";
+import StepperWorkflow from "./StepperWorkflow";
+import PackagesSection from "./PackagesSection";
+import FloatingCalculator from "./FloatingCalculator";
+import TopButtons from "./TopButtons";
+
 import { calculateTotal, calculateBreakdown } from "../src/lib/utils";
-
-
 
 type CemeteryCategory = "standard" | "comfort" | "premium";
 
-type FuneralFormData = {
+type HearseRoute = {
+  morgue: boolean;
+  hall: boolean;
+  church: boolean;
+  cemetery: boolean;
+};
+
+type FormData = {
   // Формат
   serviceType: "burial" | "cremation";
   hasHall: boolean;
   hallDuration: number;
   ceremonyType: "civil" | "religious" | "combined";
   confession: string;
-  ceremonyOrder: "civil-first";
+  ceremonyOrder: string;
 
   // Логистика
   cemetery: string;
   selectedSlot: string;
   needsHearse: boolean;
-  hearseRoute: {
-    morgue: boolean;
-    hall: boolean;
-    church: boolean;
-    cemetery: boolean;
-  };
+  hearseRoute: HearseRoute;
   needsFamilyTransport: boolean;
   familyTransportSeats: number;
   distance: string;
@@ -49,8 +50,7 @@ type FuneralFormData = {
   dataConsent: boolean;
 };
 
-const INITIAL_FORM_DATA: FuneralFormData = {
-  // Формат
+const initialFormData: FormData = {
   serviceType: "burial",
   hasHall: true,
   hallDuration: 60,
@@ -58,7 +58,6 @@ const INITIAL_FORM_DATA: FuneralFormData = {
   confession: "",
   ceremonyOrder: "civil-first",
 
-  // Логистика
   cemetery: "",
   selectedSlot: "",
   needsHearse: true,
@@ -73,12 +72,10 @@ const INITIAL_FORM_DATA: FuneralFormData = {
   distance: "",
   needsPallbearers: true,
 
-  // Атрибутика
   packageType: "",
   selectedAdditionalServices: [],
   specialRequests: "",
 
-  // Документы
   fullName: "",
   birthDate: "",
   deathDate: "",
@@ -87,175 +84,20 @@ const INITIAL_FORM_DATA: FuneralFormData = {
   dataConsent: false,
 };
 
-export default function App() {
-  const [formData, setFormData] = useState<FuneralFormData>(INITIAL_FORM_DATA);
-  const [currentStep, setCurrentStep] = useState(0);
+function App() {
+  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [currentStep, setCurrentStep] = useState<number>(0);
   const [selectedCemeteryCategory, setSelectedCemeteryCategory] =
     useState<CemeteryCategory>("standard");
 
-  // Глобальный перехват ошибок из воркеров / hls.js
+  // Скролл наверх при первой загрузке
   useEffect(() => {
-    if (typeof Worker === "undefined") return;
-
-    const originalPostMessage = Worker.prototype.postMessage;
-
-    Worker.prototype.postMessage = function (...args: unknown[]) {
-      try {
-        // @ts-expect-error — вызов оригинального метода
-        return originalPostMessage.apply(this, args);
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          (error.name === "DataCloneError" ||
-            error.message.includes("out of memory") ||
-            error.message.includes("cannot be cloned"))
-        ) {
-          console.warn("Suppressed Worker DataCloneError:", error.message);
-          return;
-        }
-        throw error;
-      }
-    };
-
-    const handleError = (event: ErrorEvent) => {
-      const msg = event.message || event.error?.message || "";
-
-      if (
-        msg &&
-        (msg.includes("DataCloneError") ||
-          msg.includes("postMessage") ||
-          msg.includes("hls.js") ||
-          msg.includes("esm.sh/hls") ||
-          msg.includes("out of memory") ||
-          msg.includes("cannot be cloned") ||
-          msg.includes("DedicatedWorkerGlobalScope"))
-      ) {
-        console.warn("Intercepted and suppressed worker error:", msg);
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-        return false;
-      }
-    };
-
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      const msg =
-        (event.reason && (event.reason.message || String(event.reason))) || "";
-
-      if (
-        msg &&
-        (msg.includes("DataCloneError") ||
-          msg.includes("postMessage") ||
-          msg.includes("hls.js") ||
-          msg.includes("esm.sh/hls") ||
-          msg.includes("out of memory") ||
-          msg.includes("cannot be cloned") ||
-          msg.includes("DedicatedWorkerGlobalScope"))
-      ) {
-        console.warn(
-          "Intercepted and suppressed worker promise rejection:",
-          msg,
-        );
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-        return false;
-      }
-    };
-
-    window.addEventListener("error", handleError, true);
-    window.addEventListener("unhandledrejection", handleUnhandledRejection, true);
-
-    return () => {
-      window.removeEventListener("error", handleError, true);
-      window.removeEventListener(
-        "unhandledrejection",
-        handleUnhandledRejection,
-        true,
-      );
-      Worker.prototype.postMessage = originalPostMessage;
-    };
-  }, []);
-
-  // Скролл к началу при первой загрузке
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  // Загрузка черновика из localStorage
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("funeral-workflow-draft");
-      if (!saved) return;
-
-      if (saved.length > 1_000_000) {
-        console.warn("Saved draft too large, removing…");
-        localStorage.removeItem("funeral-workflow-draft");
-        return;
-      }
-
-      const parsed = JSON.parse(saved);
-
-      const loadedFormData: FuneralFormData = {
-        ...INITIAL_FORM_DATA,
-        ...(parsed.formData || {}),
-        hearseRoute: {
-          ...INITIAL_FORM_DATA.hearseRoute,
-          ...(parsed.formData?.hearseRoute || {}),
-        },
-        selectedAdditionalServices:
-          parsed.formData?.selectedAdditionalServices || [],
-        birthDate:
-          parsed.formData?.birthDate === "—" ? "" : parsed.formData?.birthDate,
-        deathDate:
-          parsed.formData?.deathDate === "—" ? "" : parsed.formData?.deathDate,
-      };
-
-      setFormData(loadedFormData);
-    } catch (e) {
-      console.error("Failed to load draft:", e);
-      try {
-        localStorage.removeItem("funeral-workflow-draft");
-      } catch {
-        // игнорируем
-      }
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
     }
   }, []);
 
-  // Сохранение в localStorage при изменении формы
-  useEffect(() => {
-    try {
-      const draft = {
-        formData,
-        savedAt: new Date().toISOString(),
-      };
-
-      const draftString = JSON.stringify(draft);
-
-      if (draftString.length > 500_000) {
-        console.warn("Draft too large, skipping save");
-        return;
-      }
-
-      localStorage.setItem("funeral-workflow-draft", draftString);
-    } catch (e) {
-      console.error("Failed to save draft:", e);
-      try {
-        localStorage.removeItem("funeral-workflow-draft");
-        const keys = Object.keys(localStorage);
-        for (const key of keys) {
-          const item = localStorage.getItem(key);
-          if (item && item.length > 100_000) {
-            localStorage.removeItem(key);
-          }
-        }
-      } catch {
-        // игнорируем
-      }
-    }
-  }, [formData]);
-
-  const handleUpdateFormData = (field: keyof FuneralFormData, value: any) => {
+  const handleUpdateFormData = (field: keyof FormData, value: unknown) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -270,17 +112,20 @@ export default function App() {
     setSelectedCemeteryCategory(category);
   };
 
+  const total = calculateTotal(formData, selectedCemeteryCategory);
+  const breakdown = calculateBreakdown(formData, selectedCemeteryCategory);
+
   return (
     <div className="min-h-screen bg-white pt-20 -translate-y-[2.5%]">
-      {/* Top Buttons */}
+      {/* Верхние кнопки */}
       <div className="absolute top-0 left-0 right-0 z-30">
         <TopButtons />
       </div>
 
-      {/* Hero Section */}
+      {/* Хиро-блок */}
       <HeroSection />
 
-      {/* Stepper Workflow */}
+      {/* Степпер поверх хиро */}
       <div className="relative z-20 stepper-overlay-position">
         <StepperWorkflow
           formData={formData}
@@ -290,7 +135,7 @@ export default function App() {
         />
       </div>
 
-      {/* Packages Section — только на шаге 2 (Атрибутика) */}
+      {/* Пакеты – только на шаге 2 (атрибутика) */}
       {currentStep === 2 && (
         <PackagesSection
           formData={formData}
@@ -298,13 +143,12 @@ export default function App() {
         />
       )}
 
-      {/* Плавающий калькулятор — с шага 1 */}
+      {/* Плавающий калькулятор – с шага 1 */}
       {currentStep >= 1 && (
-        <FloatingCalculator
-          total={calculateTotal(formData, selectedCemeteryCategory)}
-          breakdown={calculateBreakdown(formData, selectedCemeteryCategory)}
-        />
+        <FloatingCalculator total={total} breakdown={breakdown} />
       )}
     </div>
   );
 }
+
+export default App;
