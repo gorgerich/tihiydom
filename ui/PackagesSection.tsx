@@ -1,10 +1,10 @@
 import { useState, Fragment } from 'react';
 import { Card, CardHeader, CardContent } from "./card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Badge } from './ui/badge';
-import { Checkbox } from './ui/checkbox';
-import { Button } from './ui/button';
-import { cn } from './ui/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
+import { Badge } from './badge';
+import { Checkbox } from './checkbox';
+import { Button } from './button';
+import { cn } from './utils';
 import { Check, Snowflake, Sparkles, Shirt, Building, UserCheck, Users, Route, Bus, Package, Palette, Video, Music, Camera, Church, Cross, FileText, Utensils, Landmark, Car, X, ChevronDown } from './Icons';
 import { UnifiedCoffinConfigurator } from './UnifiedCoffinConfigurator';
 
