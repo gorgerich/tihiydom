@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Card, CardContent } from './ui/card';
-import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from "./card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
+import { Button } from "./button";
+import { Input } from "./input";
 import { ChevronDown, ChevronUp, Download, Share2 } from './Icons';
 import { cn } from './ui/utils';
 
