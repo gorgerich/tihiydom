@@ -1,6 +1,7 @@
 import { useState, Fragment } from 'react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
 import { Card, CardHeader, CardContent } from "./card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
+import Icons from "./Icons";
 import { Badge } from './badge';
 import { Checkbox } from './checkbox';
 import { Button } from './button';
