@@ -5,7 +5,7 @@ import { Info, Play, Sparkles } from 'lucide-react';
 
 import { OnboardingStories } from './OnboardingStories';
 import { PackagesSection } from './PackagesSection';
-import AIChatModal from './AIChatModal';
+import { AIChatModal } from './AIChatModal';
 import { AboutServiceModal } from './AboutServiceModal';
 
 export function TopButtons() {
