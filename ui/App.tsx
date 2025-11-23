@@ -5,7 +5,7 @@ import StepperWorkflow from "./StepperWorkflow";
 import PackagesSection from "./PackagesSection";
 import PriceComparison from "./PriceComparison";
 import RealisticCoffinViewer from "./RealisticCoffinViewer";
-import TopButtons from "./TopButtons";
+import TopButtons from './TopButtons';
 import FloatingCalculator from "./FloatingCalculator";
 
 import { calculateTotal, calculateBreakdown } from "./calculationUtils";
