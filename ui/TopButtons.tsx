@@ -8,7 +8,9 @@ import { PackagesSection } from './PackagesSection';
 import { AIChatModal } from './AIChatModal';
 import { AboutServiceModal } from './AboutServiceModal';
 
-export function TopButtons() {
+export default function TopButtons() {
+  ...
+}
   const [isStoriesOpen, setIsStoriesOpen] = useState(false);
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
