@@ -8,8 +8,27 @@ import { PackagesSection } from './PackagesSection';
 import { AIChatModal } from './AIChatModal';
 import { AboutServiceModal } from './AboutServiceModal';
 
+// ui/TopButtons.tsx
+
+import React from 'react';
+import { Button } from './button';
+
 export default function TopButtons() {
-  ...
+  return (
+    <div className="flex flex-col gap-3 md:flex-row md:gap-4">
+      <Button className="w-full md:w-auto">
+        Рассчитать стоимость
+      </Button>
+
+      <Button variant="outline" className="w-full md:w-auto">
+        Пакетные решения
+      </Button>
+
+      <Button variant="ghost" className="w-full md:w-auto">
+        Задать вопрос
+      </Button>
+    </div>
+  );
 }
   const [isStoriesOpen, setIsStoriesOpen] = useState(false);
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
