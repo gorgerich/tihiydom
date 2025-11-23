@@ -7,7 +7,6 @@ import { Checkbox } from './checkbox';
 import { Button } from './button';
 import { cn } from './utils';
 import { Check, Snowflake, Sparkles, Shirt, Building, UserCheck, Users, Route, Bus, Package, Palette, Video, Music, Camera, Church, Cross, FileText, Utensils, Landmark, Car, X, ChevronDown } from './Icons';
-import { UnifiedCoffinConfigurator } from './UnifiedCoffinConfigurator';
 
 // Готовые пакеты для захоронения
 const PACKAGES_BURIAL = [
