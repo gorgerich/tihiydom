@@ -62,7 +62,6 @@ import {
 import { cn } from "./utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { UnifiedCoffinConfigurator } from "./UnifiedCoffinConfigurator";
 import { Calendar } from "./calendar";
 import {
   Dialog,
