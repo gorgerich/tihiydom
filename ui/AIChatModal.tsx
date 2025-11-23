@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Sparkles, Check } from 'lucide-react';
+export const AIChatModal = (props) => { ... };
 
 interface Message {
   id: string;
